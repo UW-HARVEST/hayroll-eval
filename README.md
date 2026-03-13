@@ -20,40 +20,50 @@ Other dependencies include: `python3`, `bear`, `make`, `gcc`, `cargo`, `c2rust`.
 
 ## Usage
 
-To transpile all C programs and run their tests:
+To run the complete evaluation pipeline for all three benchmarks (CRUST, libmcs, zlib):
 
 ```sh
-python3 scripts/run_tests.py
+./run_evaluation.bash
 ```
 
-To generate metadata used to run tests:
+### CRUST-specific scripts (for manual runs)
+
+To generate CRUST metadata used to run tests:
 
 ```sh
-python3 scripts/generate_metadata.py
+python3 generate_metadata_crust.py
 ```
 
-To view the pass rate (generates `benchmark_summary.json`):
+To run full CRUST benchmark (generates `benchmark_summary.json`):
 
 ```sh
-python analyze.py
+python3 benchmark_crust.py --hayroll $HAYROLL_PATH
 ```
 
-To view effectiveness and performance results (generates `aggregated_performance.json` and `aggregated_statistics.json`):
+To filter out failed CRUST projects:
 
 ```sh
-python aggregate_reports.py
+python3 filter_failing_metadata_crust.py
 ```
 
-To generate the LaTeX outcome table:
+To view CRUST pass rate:
 
 ```sh
-python generate_outcome_table.py aggregated_statistics.json
+python3 analyze_crust.py
 ```
 
-To generate the LaTeX performance table:
+To view effectiveness and performance results (generates `aggregated_statistics_*.json` and `aggregated_performance_*.json`):
 
 ```sh
-python generate_performance_table.py aggregated_performance.json
+python aggregate_reports_crust.py --search-root CBench
+```
+
+To generate LaTeX tables:
+
+```sh
+python generate_outcome_table.py aggregated_statistics_crust.json
+python generate_performance_table.py aggregated_performance_*.json
+python generate_failing_table.py aggregated_statistics_*.json
 ```
 
 ## Notes

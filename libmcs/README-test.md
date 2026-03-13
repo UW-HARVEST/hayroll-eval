@@ -16,12 +16,12 @@
 
 - Comment out everything in `libm/include/config.h`. This helps the Pioneer symbolic executor explore different preprocessor defines.
 
-- Run Hayroll `/path/to/hayroll ./compile_commands.json ./hayroll_output`.
+- Run Hayroll `/path/to/hayroll ./compile_commands.json ./hayroll_out`.
 
-- Build the translation output. Note that you need to modify the `[features]` section in the `Cargo.toml` in the `hayroll_output` directory to build with different feature flags.
+- Build the translation output. Note that you need to modify the `[features]` section in the `Cargo.toml` in the `hayroll_out` directory to build with different feature flags.
 
 ```
-cd ./hayroll_output
+cd ./hayroll_out
 cargo build
 ```
 

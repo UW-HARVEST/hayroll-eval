@@ -23,7 +23,7 @@ CFLAGS=-O3 -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN
 SFLAGS=-O3 -fPIC -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN
 LDFLAGS=
 # TEST_LIBS=-L. libz.a
-TEST_LIBS=-L. ./hayroll_output/target/debug/libhayroll_out.a
+TEST_LIBS=-L. ./hayroll_out/target/debug/libhayroll_out.a
 # TEST_LIBS=-L. ./c2rust_output/target/debug/libc2rust_output.a
 LDSHARED=gcc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map
 CPP=

@@ -3,8 +3,8 @@ include ./Make.inc
 
 # Set rpath of tests to builddir for loading shared library
 # OPENLIBM_LIB = -I. -I../libm/include -L../build-x86_64-linux-gnu/bin -lm
-# OPENLIBM_LIB = -I. -I../libm/include -L../c2rust_output/target/debug -lc2rust_output
-OPENLIBM_LIB = -I. -I../libm/include -L../hayroll_output/target/debug -lhayroll_out -lquadmath
+# OPENLIBM_LIB = -I. -I../libm/include -L../c2rust_out/target/debug -lc2rust_output
+OPENLIBM_LIB = -I. -I../libm/include -L../hayroll_out/target/debug -lhayroll_out -lquadmath
 ifneq ($(OS),WINNT)
 ifneq ($(OS),Darwin)
 OPENLIBM_LIB += -Wl,-rpath=$(OPENLIBM_HOME)

@@ -35,6 +35,6 @@ contrib/nuget/bin
 contrib/nuget/obj
 *.included
 
-/c2rust_output
-/hayroll_output
+/c2rust_out
+/hayroll_out
 /build

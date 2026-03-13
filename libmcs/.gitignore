@@ -51,5 +51,5 @@ lost+found
 html/
 
 /output/
-/c2rust_output/
-/hayroll_output/
+/c2rust_out/
+/hayroll_out/

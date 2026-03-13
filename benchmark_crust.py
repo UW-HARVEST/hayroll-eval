@@ -1,4 +1,6 @@
+import argparse
 import json
+import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -22,14 +24,51 @@ def run(command, cwd=None, timeout=30):
         return False, "", str(e)
 
 
-results = {}
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run complete CRUST benchmark evaluation"
+    )
+    parser.add_argument(
+        "--hayroll",
+        type=str,
+        default=None,
+        help="Path to Hayroll executable (default: from HAYROLL_PATH env var or ~/Hayroll/hayroll)",
+    )
+    return parser.parse_args()
 
+
+def get_hayroll_path(provided_path):
+    """Get Hayroll path from argument, environment, or default."""
+    if provided_path:
+        return provided_path
+
+    # Try environment variable
+    env_path = os.environ.get("HAYROLL_PATH")
+    if env_path:
+        return env_path
+
+    # Default to home directory
+    return os.path.expanduser("~/Hayroll/hayroll")
+
+
+results = {}
 root_dir = Path.cwd()
 
-# with open("metadata.json") as file:
+# Load pre-filtered metadata
 with open("metadata-filtered.json") as file:
-# with open("metadata-1.json") as file:
     benchmark_metadata = json.load(file)
+
+# Get Hayroll path
+args = parse_args()
+hayroll_path = get_hayroll_path(args.hayroll)
+
+# Verify Hayroll exists
+if not Path(hayroll_path).exists():
+    print(f"Error: Hayroll not found at {hayroll_path}")
+    print("Set HAYROLL_PATH environment variable or use --hayroll argument")
+    exit(1)
+
+print(f"Using Hayroll at: {hayroll_path}")
 
 
 def process_program(program):
@@ -72,11 +111,9 @@ def process_program(program):
             print(f"Finished '{name}' with status: {program_result['status']}")
             return name, program_result
 
-    # run("rm -rf ./c2rust_out", cwd=program_dir)
     run("rm -rf ./hayroll_out", cwd=program_dir)
     success, out, err = run(
-        # "c2rust transpile --emit-build-files compile_commands.json -o c2rust_out",
-        "~/Hayroll/hayroll transpile compile_commands.json -o hayroll_out",
+        f"{hayroll_path} transpile compile_commands.json -o hayroll_out",
         cwd=program_dir,
         timeout=300,
     )
@@ -85,7 +122,16 @@ def process_program(program):
         print(f"Finished '{name}' with status: {program_result['status']}")
         return name, program_result
 
-    # cargo_dir = program_dir / "c2rust_out"
+    # Verify that Cargo.toml was actually generated
+    cargo_toml_path = program_dir / "hayroll_out" / "Cargo.toml"
+    if not cargo_toml_path.exists():
+        fail(
+            "transpile",
+            "Cargo.toml not generated - transpile may have failed silently or project structure unclear",
+        )
+        print(f"Finished '{name}' with status: {program_result['status']}")
+        return name, program_result
+
     cargo_dir = program_dir / "hayroll_out"
     success, out, err = run("cargo build", cwd=cargo_dir)
     if not success:
@@ -97,7 +143,6 @@ def process_program(program):
         exe_name = Path(test_file).stem + "_exe"
         sources = " ".join([test_file] + sub_tests)
         compile_cmd = (
-            # f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -Lc2rust_out/target/debug -lc2rust_out -ldl -lpthread -lm"
             f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -Lhayroll_out/target/debug -lhayroll_out -ldl -lpthread -lm"
         )
         success, out, err = run(compile_cmd, cwd=program_dir)
@@ -127,7 +172,7 @@ def process_program(program):
     return name, program_result
 
 
-with ThreadPoolExecutor(max_workers=16) as executor:
+with ThreadPoolExecutor(max_workers=8) as executor:
     futures = [
         executor.submit(process_program, program)
         for program in benchmark_metadata["programs"]
@@ -140,3 +185,4 @@ with open("benchmark_summary.json", "w") as file:
     json.dump(results, file, indent=4)
 
 print("Finished")
+
