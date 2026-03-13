@@ -1,12 +1,12 @@
 # Hayroll Evaluation Pipeline
 
-This guide explains how to run the complete evaluation pipeline for all three benchmarks (CRUST, libmcs, zlib) and generate the final LaTeX tables for your paper.
+This guide explains how to run the complete evaluation pipeline for all three benchmarks (CRUST-Bench, libmcs, zlib) and generate the LaTeX tables in the paper.
 
 ## Files
 
 ### Main Scripts
 - **`run_evaluation.bash`** - Master orchestration script (runs everything)
-- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib)
+- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib) (This should have alredy been done)
 
 ### Benchmark-Specific Scripts
 - **`libmcs/test_libmcs.bash`** - Test runner for libmcs
@@ -37,12 +37,12 @@ This guide explains how to run the complete evaluation pipeline for all three be
 This will:
 1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
 2. Download benchmarks (if not already present)
-3. **CRUST**: Full evaluation (metadata -> benchmark -> filter -> aggregate)
-4. **libmcs**: Configure -> compile -> transpile -> build -> test -> aggregate
-5. **zlib**: Configure -> compile -> transpile -> build -> test -> aggregate
+3. **CRUST-Bench**: transpile -> build -> test -> aggregate
+4. **libmcs**: configure -> compile -> transpile -> build -> test -> aggregate
+5. **zlib**: configure -> compile -> transpile -> build -> test -> aggregate
 6. Generate all LaTeX tables
 
-It should take about 25 minutes to run everything.
+It should take fewer than 25 minutes to run everything. Reference: Intel(R) Core(TM) i7-1370P CPU @ 1.90GHz × 14, 64GB RAM, on a poorly radiated machine.
 
 ## Output Files
 
@@ -66,3 +66,13 @@ outcome_table_zlib.tex                  # zlib translation outcomes
 performance_table.tex                   # Combined performance comparison
 failing_table.tex                       # Combined macro rejection reasons
 ```
+
+## Additional Notes
+
+Some test programs from CRUST-Bench may occasionally fail due to non-deterministic factors.
+
+`libpsbt`: May report "misaligned pointer dereference". `tx.c` uses the `__FILE__` macro to generate C-strings and manipulates those with raw pointers. According to which temporary folders that InariRoll uses during transpilation, it may or may not trigger this issue.
+
+`clog`: It includes a performance test which may fail on less powerful machines.
+
+Some other test programs may fail due to cargo build timeout. This also happens more often on less powerful machines.
