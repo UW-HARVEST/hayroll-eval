@@ -330,7 +330,12 @@ def main(argv: Iterable[str]) -> int:
 
 	performance_files = sorted(find_performance_files(search_root))
 	performance_summary = aggregate_performance(performance_files)
-	performance_output = args.output.parent / "aggregated_performance.json"
+	output_name = args.output.name
+	if output_name.startswith("aggregated_statistics_"):
+		perf_name = output_name.replace("aggregated_statistics_", "aggregated_performance_", 1)
+	else:
+		perf_name = "aggregated_performance.json"
+	performance_output = args.output.parent / perf_name
 	performance_text = json.dumps(performance_summary, indent=args.indent, sort_keys=args.sort_keys)
 	performance_output.parent.mkdir(parents=True, exist_ok=True)
 	performance_output.write_text(performance_text + "\n", encoding="utf-8")
