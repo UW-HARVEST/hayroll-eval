@@ -39,6 +39,12 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
 		default=DEFAULT_OUTPUT,
 		help=f"Output LaTeX path (default: {DEFAULT_OUTPUT}).",
 	)
+	parser.add_argument(
+		"--column-names",
+		nargs="+",
+		metavar="NAME",
+		help="Column header names in order (must match number of input files).",
+	)
 	return parser.parse_args(list(argv))
 
 
@@ -81,8 +87,11 @@ def build_column_entries(content: dict) -> List[str]:
 	return entries
 
 
-def render_table(columns: List[List[str]]) -> str:
-	column_headers = [f"\\textbf{{Placeholder {idx}}}" for idx in range(1, len(columns) + 1)]
+def render_table(columns: List[List[str]], column_names: List[str] | None = None) -> str:
+	if column_names and len(column_names) == len(columns):
+		column_headers = [f"\\textbf{{{name}}}" for name in column_names]
+	else:
+		column_headers = [f"\\textbf{{Placeholder {idx}}}" for idx in range(1, len(columns) + 1)]
 
 	header_line = "\\textbf{Component}"
 	if column_headers:
@@ -126,7 +135,7 @@ def main(argv: Iterable[str]) -> int:
 
 	columns = [build_column_entries(load_performance(path)) for path in args.inputs]
 
-	table_text = render_table(columns)
+	table_text = render_table(columns, args.column_names)
 	args.output.write_text(table_text, encoding="utf-8")
 	return 0
 

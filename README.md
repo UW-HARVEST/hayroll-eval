@@ -1,71 +1,68 @@
-# Hayroll Tests
+# Hayroll Evaluation Pipeline
 
-Automated test runner for validating C to Rust transpilation using the C2Rust toolchain.
-It builds, transpiles, and tests C programs from the CRUST benchmark, summarizing results in a structured JSON file.
+This guide explains how to run the complete evaluation pipeline for all three benchmarks (CRUST, libmcs, zlib) and generate the final LaTeX tables for your paper.
 
-The current results of the benchmark can be viewed at [`test_results.json`](test_results.json).
+## Files
 
-`metadata-filtered.json` contains metadata about each program in the CRUST benchmark, and is used to run the transpilation and tests.
+### Main Scripts
+- **`run_evaluation.bash`** - Master orchestration script (runs everything)
+- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib)
 
-## Prerequisites
+### Benchmark-Specific Scripts
+- **`libmcs/test_libmcs.bash`** - Test runner for libmcs
+- **`zlib/test_zlib.bash`** - Test runner for zlib
 
-Requires installing [Hayroll](https://github.com/UW-HARVEST/Hayroll) and its dependencies. Please refer to the Hayroll repository for installation instructions. To make sure you are testing the latest Hayroll and its latest dependencies, please clone the main branch of the Hayroll repository, and when running `prerequisites.bash`, add `--latest`. You do not need to lean how to use Hayroll for this benchmark; the scripts will handle everything.
+### Existing Evaluation Scripts
 
-Requires `CBench` directory from the [CRUST benchmark]. To copy:
-```sh
-./fetch-CBench.bash
-```
+#### CRUST-specific scripts
+- **`benchmark_crust.py`** - CRUST full evaluation (handles all 4 dimensions)
+- **`generate_metadata_crust.py`** - Generates metadata for CRUST projects
+- **`filter_failing_metadata_crust.py`** - Filters out failed CRUST projects
+- **`analyze_crust.py`** - Analyzes CRUST pass rate
 
-Other dependencies include: `python3`, `bear`, `make`, `gcc`, `cargo`, `c2rust`.
+#### Aggregate scripts
+- **`aggregate_reports_crust.py`** - Aggregates CRUST statistics and performance data
+- **`libmcs/aggregate_reports.py`** - Aggregates libmcs statistics and performance data
+- **`zlib/aggregate_reports.py`** - Aggregates zlib statistics and performance data
+- **`generate_outcome_table.py`** - Generates translation outcome tables
+- **`generate_performance_table.py`** - Generates performance comparison table
+- **`generate_failing_table.py`** - Generates macro rejection reasons table
 
-## Usage
+## Quick Start
 
-To run the complete evaluation pipeline for all three benchmarks (CRUST, libmcs, zlib):
-
-```sh
+```bash
 ./run_evaluation.bash
 ```
 
-### CRUST-specific scripts (for manual runs)
+This will:
+1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
+2. Download benchmarks (if not already present)
+3. **CRUST**: Full evaluation (metadata -> benchmark -> filter -> aggregate)
+4. **libmcs**: Configure -> compile -> transpile -> build -> test -> aggregate
+5. **zlib**: Configure -> compile -> transpile -> build -> test -> aggregate
+6. Generate all LaTeX tables
 
-To generate CRUST metadata used to run tests:
+It should take about 25 minutes to run everything.
 
-```sh
-python3 generate_metadata_crust.py
+## Output Files
+
+### Generated Data Files
+```
+aggregated_statistics_crust.json        # CRUST macro statistics
+aggregated_statistics_libmcs.json       # libmcs macro statistics
+aggregated_statistics_zlib.json         # zlib macro statistics
+
+aggregated_performance_crust.json       # CRUST pipeline performance
+aggregated_performance_libmcs.json      # libmcs pipeline performance
+aggregated_performance_zlib.json        # zlib pipeline performance
 ```
 
-To run full CRUST benchmark (generates `benchmark_summary.json`):
-
-```sh
-python3 benchmark_crust.py --hayroll $HAYROLL_PATH
+### Generated LaTeX Tables
 ```
+outcome_table_crust.tex                 # CRUST translation outcomes
+outcome_table_libmcs.tex                # libmcs translation outcomes
+outcome_table_zlib.tex                  # zlib translation outcomes
 
-To filter out failed CRUST projects:
-
-```sh
-python3 filter_failing_metadata_crust.py
+performance_table.tex                   # Combined performance comparison
+failing_table.tex                       # Combined macro rejection reasons
 ```
-
-To view CRUST pass rate:
-
-```sh
-python3 analyze_crust.py
-```
-
-To view effectiveness and performance results (generates `aggregated_statistics_*.json` and `aggregated_performance_*.json`):
-
-```sh
-python aggregate_reports_crust.py --search-root CBench
-```
-
-To generate LaTeX tables:
-
-```sh
-python generate_outcome_table.py aggregated_statistics_crust.json
-python generate_performance_table.py aggregated_performance_*.json
-python generate_failing_table.py aggregated_statistics_*.json
-```
-
-## Notes
-
-Currently excluding `skp` program because it always seems to hang.

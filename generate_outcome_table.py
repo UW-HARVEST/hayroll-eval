@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List
 
 
-DEFAULT_OUTPUT = Path("outcome_table.tex")
+DEFAULT_OUTPUT = Path("outcome_table_crust.tex")
 
 
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:
@@ -19,6 +19,11 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
 		description="Render macro outcome LaTeX table from aggregated statistics JSON."
 	)
 	parser.add_argument("input", type=Path, help="Aggregated statistics JSON file")
+	parser.add_argument(
+		"--name",
+		default="PLACEHOLDER",
+		help="Benchmark name used in table caption and label (e.g. CRUST, libmcs, zlib).",
+	)
 	parser.add_argument(
 		"--output",
 		type=Path,
@@ -61,7 +66,7 @@ def format_entry(count: Real | None, ratio: Real | None) -> str:
 	return f"{to_int(count)} ({to_percent(ratio)}\\%)"
 
 
-def build_table(stats: Dict[str, object]) -> str:
+def build_table(stats: Dict[str, object], name: str = "PLACEHOLDER") -> str:
 	labels: List[str] = [
 		"All",
 		"Syntactical",
@@ -215,8 +220,8 @@ def build_table(stats: Dict[str, object]) -> str:
 	table_lines = [
 		"\\begin{table}[t]",
 		"\\centering",
-		"\\caption{Macro translation outcomes for PLACEHOLDER by syntactic category}",
-		"\\label{tab:macro-outcomes-placeholders}",
+		"\\caption{Macro translation outcomes for " + name + " by syntactic category}",
+		"\\label{tab:macro-outcomes-" + name.lower() + "}",
 		"\\resizebox{\\linewidth}{!}{",
 		"\\begin{tabular}{lrrrrrrr}",
 		"\\toprule",
@@ -258,7 +263,7 @@ def build_table(stats: Dict[str, object]) -> str:
 def main(argv: Iterable[str]) -> int:
 	args = parse_args(argv)
 	stats = load_statistics(args.input)
-	table_text = build_table(stats)
+	table_text = build_table(stats, args.name)
 	args.output.write_text(table_text, encoding="utf-8")
 	return 0
 

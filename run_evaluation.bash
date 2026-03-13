@@ -50,7 +50,7 @@ download_benchmarks() {
     log_section "Downloading benchmarks"
 
     if [ ! -d "$SCRIPT_DIR/CBench" ] && [ ! -f "$SCRIPT_DIR/CRUST_bench.zip" ]; then
-        bash "$SCRIPT_DIR/fetch-benchmarks.bash"
+        bash "$SCRIPT_DIR/fetch_benchmarks.bash"
     else
         log_success "Benchmarks already present"
     fi
@@ -201,9 +201,9 @@ generate_tables() {
 
     # Generate outcome tables for each benchmark
     log_section "Generating outcome tables"
-    python3 generate_outcome_table.py aggregated_statistics_crust.json --output outcome_table.tex
-    python3 generate_outcome_table.py aggregated_statistics_libmcs.json --output outcome_table_libmcs.tex
-    python3 generate_outcome_table.py aggregated_statistics_zlib.json --output outcome_table_zlib.tex
+    python3 generate_outcome_table.py aggregated_statistics_crust.json --name CRUST --output outcome_table_crust.tex
+    python3 generate_outcome_table.py aggregated_statistics_libmcs.json --name libmcs --output outcome_table_libmcs.tex
+    python3 generate_outcome_table.py aggregated_statistics_zlib.json --name zlib --output outcome_table_zlib.tex
     log_success "Outcome tables generated"
 
     # Generate performance table (combined)
@@ -212,6 +212,7 @@ generate_tables() {
         aggregated_performance_crust.json \
         aggregated_performance_libmcs.json \
         aggregated_performance_zlib.json \
+        --column-names CRUST libmcs zlib \
         --output performance_table.tex
     log_success "Performance table generated"
 
@@ -221,6 +222,7 @@ generate_tables() {
         aggregated_statistics_crust.json \
         aggregated_statistics_libmcs.json \
         aggregated_statistics_zlib.json \
+        --column-names CRUST libmcs zlib \
         --output failing_table.tex
     log_success "Failing reasons table generated"
 }
@@ -251,7 +253,7 @@ main() {
     echo "Generated files:"
     echo "  - aggregated_statistics_crust.json, aggregated_statistics_libmcs.json, aggregated_statistics_zlib.json"
     echo "  - aggregated_performance_crust.json, aggregated_performance_libmcs.json, aggregated_performance_zlib.json"
-    echo "  - outcome_table.tex, outcome_table_libmcs.tex, outcome_table_zlib.tex"
+    echo "  - outcome_table_crust.tex, outcome_table_libmcs.tex, outcome_table_zlib.tex"
     echo "  - performance_table.tex"
     echo "  - failing_table.tex"
 }
