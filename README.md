@@ -75,4 +75,6 @@ Some test programs from CRUST-Bench may occasionally fail due to non-determinist
 
 `clog`: It includes a performance test which may fail on less powerful machines.
 
+`fs_c`: It verifies that opening `/root/foo` for writing fails (i.e. the process lacks permission). When running as root (e.g. inside a Docker container), this write succeeds and the assertion fires. This is a pre-existing issue in the upstream test, not an InariRoll bug.
+
 Some other test programs may fail due to cargo build timeout. This also happens more often on less powerful machines.
