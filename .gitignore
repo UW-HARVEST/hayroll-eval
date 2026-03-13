@@ -15,3 +15,5 @@ CRUST_bench.zip
 *.cb
 *.cb2
 .*.lb
+
+inariroll_out/
