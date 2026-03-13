@@ -34,6 +34,23 @@ def parse_args():
         default=None,
         help="Path to Hayroll executable (default: from HAYROLL_PATH env var or ~/Hayroll/hayroll)",
     )
+    parser.add_argument(
+        "--c2rust",
+        action="store_true",
+        help=(
+            "Run c2rust baseline instead of Hayroll (c2rust must be installed system-wide). "
+            "Uses metadata.json by default instead of metadata-filtered.json."
+        ),
+    )
+    parser.add_argument(
+        "--metadata",
+        type=str,
+        default=None,
+        help=(
+            "Metadata JSON file to read. "
+            "Defaults to metadata.json with --c2rust, metadata-filtered.json otherwise."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -54,21 +71,33 @@ def get_hayroll_path(provided_path):
 results = {}
 root_dir = Path.cwd()
 
-# Load pre-filtered metadata
-with open("metadata-filtered.json") as file:
-    benchmark_metadata = json.load(file)
-
-# Get Hayroll path
+# Parse args first so we know which metadata file and tool to use
 args = parse_args()
-hayroll_path = get_hayroll_path(args.hayroll)
 
-# Verify Hayroll exists
-if not Path(hayroll_path).exists():
-    print(f"Error: Hayroll not found at {hayroll_path}")
+# Determine tool mode: c2rust baseline or Hayroll (default)
+if args.c2rust:
+    tool_path = "c2rust"
+    out_dir = "c2rust_out"
+    transpile_cmd = f"{tool_path} transpile --emit-build-files compile_commands.json -o {out_dir}"
+    default_metadata = "metadata.json"
+else:
+    tool_path = get_hayroll_path(args.hayroll)
+    out_dir = "hayroll_out"
+    transpile_cmd = f"{tool_path} transpile compile_commands.json -o {out_dir}"
+    default_metadata = "metadata-filtered.json"
+
+# Verify Hayroll executable exists (c2rust is a system command, no path check needed)
+if not args.c2rust and not Path(tool_path).exists():
+    print(f"Error: Hayroll not found at {tool_path}")
     print("Set HAYROLL_PATH environment variable or use --hayroll argument")
     exit(1)
 
-print(f"Using Hayroll at: {hayroll_path}")
+print(f"Using tool at: {tool_path}")
+
+# Load metadata
+metadata_file = args.metadata if args.metadata else default_metadata
+with open(metadata_file) as file:
+    benchmark_metadata = json.load(file)
 
 
 def process_program(program):
@@ -111,9 +140,9 @@ def process_program(program):
             print(f"Finished '{name}' with status: {program_result['status']}")
             return name, program_result
 
-    run("rm -rf ./hayroll_out", cwd=program_dir)
+    run(f"rm -rf ./{out_dir}", cwd=program_dir)
     success, out, err = run(
-        f"{hayroll_path} transpile compile_commands.json -o hayroll_out",
+        transpile_cmd,
         cwd=program_dir,
         timeout=300,
     )
@@ -123,7 +152,7 @@ def process_program(program):
         return name, program_result
 
     # Verify that Cargo.toml was actually generated
-    cargo_toml_path = program_dir / "hayroll_out" / "Cargo.toml"
+    cargo_toml_path = program_dir / out_dir / "Cargo.toml"
     if not cargo_toml_path.exists():
         fail(
             "transpile",
@@ -132,7 +161,7 @@ def process_program(program):
         print(f"Finished '{name}' with status: {program_result['status']}")
         return name, program_result
 
-    cargo_dir = program_dir / "hayroll_out"
+    cargo_dir = program_dir / out_dir
     success, out, err = run("cargo build", cwd=cargo_dir)
     if not success:
         fail("rust_build", err)
@@ -143,7 +172,7 @@ def process_program(program):
         exe_name = Path(test_file).stem + "_exe"
         sources = " ".join([test_file] + sub_tests)
         compile_cmd = (
-            f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -Lhayroll_out/target/debug -lhayroll_out -ldl -lpthread -lm"
+            f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -L{out_dir}/target/debug -l{out_dir} -ldl -lpthread -lm"
         )
         success, out, err = run(compile_cmd, cwd=program_dir)
         if not success:
@@ -185,4 +214,3 @@ with open("benchmark_summary.json", "w") as file:
     json.dump(results, file, indent=4)
 
 print("Finished")
-

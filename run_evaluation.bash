@@ -65,17 +65,22 @@ eval_crust() {
 
     cd "$SCRIPT_DIR"
 
-    # NOTE: benchmark_crust.py internally uses metadata-filtered.json for CRUST projects.
-    # That file includes the 33 CRUST projects that C2Rust successfully transpiled and passed tests.
-    # We did not include the generation of metadata-filtered.json in this script because
-    # C2Rust produces some non-terminating code that either wastes time or require manual intervention to filter out.
-    # To manually run the full pipeline from scratch:
-    #   export HAYROLL_PATH=/path/to/hayroll
-    #   python3 generate_metadata_crust.py
-    #   python3 benchmark_crust.py --hayroll $HAYROLL_PATH
-    #   python3 filter_failing_metadata_crust.py
+    # metadata-filtered.json is pre-generated and included in this repository.
+    # It contains the subset of CRUST projects on which C2Rust (the baseline tool)
+    # successfully transpiled, built, and passed all tests. Restricting Hayroll's
+    # evaluation to this subset ensures a fair comparison: we only measure projects
+    # that the baseline can also handle.
+    #
+    # If you need to regenerate metadata-filtered.json from scratch (e.g. after
+    # updating the benchmark set), the process is:
+    #   1. python3 generate_metadata_crust.py          # discover all test files -> metadata.json
+    #   2. python3 benchmark_crust.py --c2rust         # run C2Rust on all projects
+    #   3. python3 filter_failing_metadata_crust.py    # keep only C2Rust-passing projects
+    #
+    # Note: C2Rust occasionally produces non-terminating translated code. Step 2 may
+    # require manually killing stuck processes before proceeding to step 3.
 
-    # Step 1: Run full benchmark
+    # Step 1: Run full benchmark on filtered (C2Rust-passing) projects
     log_section "Running full CRUST evaluation"
     python3 benchmark_crust.py --hayroll "$HAYROLL_PATH"
     log_success "Benchmark completed"
