@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 
-def run(command, cwd=None, timeout=30):
+def run(command, cwd=None, timeout=120):
     try:
         result = subprocess.run(
             command,
