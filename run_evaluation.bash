@@ -139,7 +139,7 @@ eval_libmcs() {
 
     # Step 5: Run tests
     log_section "Running libmcs tests"
-    LIBMCS_SRC="$LIBMCS_SRC" bash "$SCRIPT_DIR/libmcs/test_libmcs.bash" >> "$log_file" 2>&1 || true  # Continue even if tests fail
+    LIBMCS_SRC="$LIBMCS_SRC" bash "$SCRIPT_DIR/libmcs/test_libmcs.bash" >> "$log_file" 2>&1 || log_error "libmcs tests failed (see $log_file)"
 
     # Step 6: Aggregate results
     log_section "Aggregating libmcs results"
@@ -186,7 +186,7 @@ eval_zlib() {
 
     # Step 5: Run tests
     log_section "Running zlib tests"
-    ZLIB_SRC="$ZLIB_SRC" bash "$SCRIPT_DIR/zlib/test_zlib.bash" >> "$log_file" 2>&1 || true  # Continue even if tests fail
+    ZLIB_SRC="$ZLIB_SRC" bash "$SCRIPT_DIR/zlib/test_zlib.bash" >> "$log_file" 2>&1 || log_error "zlib tests failed (see $log_file)"
 
     # Step 6: Aggregate results
     log_section "Aggregating zlib results"
