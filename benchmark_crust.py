@@ -144,7 +144,7 @@ def process_program(program):
     success, out, err = run(
         transpile_cmd,
         cwd=program_dir,
-        timeout=300,
+        timeout=600,
     )
     if not success:
         fail("transpile", err)

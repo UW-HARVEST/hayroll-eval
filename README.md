@@ -77,4 +77,4 @@ Some test programs from CRUST-Bench may occasionally fail due to non-determinist
 
 `fs_c`: It verifies that opening `/root/foo` for writing fails (i.e. the process lacks permission). When running as root (e.g. inside a Docker container), this write succeeds and the assertion fires. This is a pre-existing issue in the upstream test, not an InariRoll bug.
 
-Some other test programs may fail due to cargo build timeout. This also happens more often on less powerful machines.
+Some other test programs may fail due to transpilation or cargo build timeout. This also happens more often on less powerful machines. You can adjust `max_workers` in the `benchmark_crust.py` script to reduce the number of parallel processes and mitigate this issue.
