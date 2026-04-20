@@ -1,0 +1,21 @@
+.git/
+
+# Hayroll (cloned by setup.bash at build time, not part of this repo)
+Hayroll/
+**/target/
+
+# Evaluation outputs
+**/hayroll_out/
+**/*_eval.log
+
+# Externally fetched benchmarks
+benchmarks/
+CBench/
+CRUST_bench.zip
+libmcs/
+zlib/
+
+# Evaluation result files (generated at runtime)
+aggregated*.json
+benchmark_summary.json
+*.tex

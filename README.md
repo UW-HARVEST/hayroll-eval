@@ -7,6 +7,8 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ### Main Scripts
 - **`setup.bash`**: One-stop setup: builds Hayroll from the submodule and downloads all benchmarks
 - **`run_evaluation.bash`**: Master orchestration script (runs everything)
+- **`build-docker.bash`**: Builds the Docker evaluation image
+- **`Dockerfile`**: Container image definition
 
 ### Benchmark-Specific Patch Files
 - **`libmcs_patch/`**: libmcs tests adapted from OpenLibm and test harness
@@ -45,6 +47,14 @@ This guide explains how to run the complete evaluation pipeline for all three be
 3. Aggregate results and generate LaTeX tables
 
 It should take fewer than 25 minutes to run everything. Reference: Intel(R) Core(TM) i7-1370P CPU @ 1.90GHz × 14, 64GB RAM, on a poorly radiated machine.
+
+## Docker
+
+The image is self-contained. You only need to run:
+
+```bash
+./run_evaluation.bash
+```
 
 ## Output Files
 

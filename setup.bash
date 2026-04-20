@@ -1,17 +1,47 @@
 #!/usr/bin/env bash
-# One-stop setup: build Hayroll from the submodule and download benchmarks.
-# Usage: ./setup.bash
+# One-stop setup: clone/update Hayroll, build it, and download benchmarks.
+# Usage: ./setup.bash [--latest]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HAYROLL_DIR="$SCRIPT_DIR/Hayroll"
 
-# --- Build Hayroll ---
+HAYROLL_GIT="https://github.com/UW-HARVEST/Hayroll.git"
+HAYROLL_TAG="0.1.6"
 
-if [ ! -f "$HAYROLL_DIR/build.bash" ]; then
-    echo "Hayroll submodule not initialized. Running: git submodule update --init"
-    git -C "$SCRIPT_DIR" submodule update --init --recursive
+USE_LATEST=false
+for arg in "$@"; do
+    case "$arg" in
+        --latest) USE_LATEST=true ;;
+        *) echo "Unknown option: $arg"; exit 1 ;;
+    esac
+done
+
+# --- Clone or update Hayroll ---
+
+if [ -d "$HAYROLL_DIR/.git" ]; then
+    if [ "$USE_LATEST" = true ]; then
+        echo "Updating Hayroll to latest main..."
+        git -C "$HAYROLL_DIR" fetch origin main --quiet
+        git -C "$HAYROLL_DIR" reset --hard origin/main --quiet
+    else
+        echo "Updating Hayroll to $HAYROLL_TAG..."
+        git -C "$HAYROLL_DIR" fetch --tags --quiet
+        git -C "$HAYROLL_DIR" reset --hard "$HAYROLL_TAG" --quiet
+    fi
+elif [ -d "$HAYROLL_DIR" ]; then
+    echo "Hayroll directory exists but is not a git repo, skipping clone"
+else
+    if [ "$USE_LATEST" = true ]; then
+        echo "Cloning Hayroll (latest main)..."
+        git clone --quiet "$HAYROLL_GIT" "$HAYROLL_DIR"
+    else
+        echo "Cloning Hayroll $HAYROLL_TAG..."
+        git clone --quiet -b "$HAYROLL_TAG" "$HAYROLL_GIT" "$HAYROLL_DIR"
+    fi
 fi
+
+# --- Build Hayroll ---
 
 cd "$HAYROLL_DIR"
 ./prerequisites.bash
