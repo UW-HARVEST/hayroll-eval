@@ -29,15 +29,15 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Quick Start
 
 ```bash
-git submodule update --init --recursive   # check out Hayroll submodule
-./setup.bash                               # build Hayroll and download benchmarks
+./setup.bash                               # fetch, build Hayroll and download benchmarks
 ./run_evaluation.bash                      # run full evaluation
 ```
 
 `setup.bash` will:
-1. Build Hayroll from the `Hayroll/` submodule
-2. Download benchmarks into `./CBench`, `./libmcs`, and `./zlib`
-3. Overlay local patch files from `libmcs_patch/` and `zlib_patch/` onto the fetched git repositories
+1. Update git submodules (fetches Hayroll code into `Hayroll/`)
+2. Build Hayroll from the `Hayroll/` submodule
+3. Download benchmarks into `./CBench`, `./libmcs`, and `./zlib`
+4. Overlay local patch files from `libmcs_patch/` and `zlib_patch/` onto the fetched git repositories
 
 `run_evaluation.bash` will:
 1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
