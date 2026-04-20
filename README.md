@@ -5,8 +5,8 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Files
 
 ### Main Scripts
+- **`setup.bash`**: One-stop setup: builds Hayroll from the submodule and downloads all benchmarks
 - **`run_evaluation.bash`**: Master orchestration script (runs everything)
-- **`fetch_benchmarks.bash`**: Downloads benchmark sources and overlays local patch files for libmcs/zlib
 
 ### Benchmark-Specific Patch Files
 - **`libmcs_patch/`**: libmcs tests adapted from OpenLibm and test harness
@@ -29,15 +29,20 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Quick Start
 
 ```bash
-./run_evaluation.bash
+git submodule update --init --recursive   # check out Hayroll submodule
+./setup.bash                               # build Hayroll and download benchmarks
+./run_evaluation.bash                      # run full evaluation
 ```
 
-This will:
-1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
+`setup.bash` will:
+1. Build Hayroll from the `Hayroll/` submodule
 2. Download benchmarks into `./CBench`, `./libmcs`, and `./zlib`
 3. Overlay local patch files from `libmcs_patch/` and `zlib_patch/` onto the fetched git repositories
-4. Run all tests for CRUST-Bench, libmcs, and zlib
-5. Aggregate results and generate LaTeX tables
+
+`run_evaluation.bash` will:
+1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
+2. Run all tests for CRUST-Bench, libmcs, and zlib
+3. Aggregate results and generate LaTeX tables
 
 It should take fewer than 25 minutes to run everything. Reference: Intel(R) Core(TM) i7-1370P CPU @ 1.90GHz × 14, 64GB RAM, on a poorly radiated machine.
 

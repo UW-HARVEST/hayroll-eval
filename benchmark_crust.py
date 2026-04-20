@@ -32,7 +32,7 @@ def parse_args():
         "--hayroll",
         type=str,
         default=None,
-        help="Path to Hayroll executable (default: from HAYROLL_PATH env var or ~/Hayroll/hayroll)",
+        help="Path to Hayroll executable (default: from HAYROLL_PATH env var or ./Hayroll/hayroll)",
     )
     parser.add_argument(
         "--c2rust",
@@ -64,8 +64,8 @@ def get_hayroll_path(provided_path):
     if env_path:
         return env_path
 
-    # Default to home directory
-    return os.path.expanduser("~/Hayroll/hayroll")
+    # Default to submodule build
+    return str(Path(__file__).parent / "Hayroll" / "hayroll")
 
 
 results = {}

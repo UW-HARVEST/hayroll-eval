@@ -20,3 +20,8 @@ CRUST_bench.zip
 hayroll_out/
 /libmcs/
 /zlib/
+
+## Results
+/aggregated*.json
+/benchmark_summary.json
+/*.tex

@@ -4,7 +4,7 @@ set -e
 # Complete evaluation pipeline for all benchmarks
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HAYROLL_PATH="${HAYROLL_PATH:-$HOME/Hayroll/hayroll}"
+HAYROLL_PATH="${HAYROLL_PATH:-$SCRIPT_DIR/Hayroll/hayroll}"
 
 # Color output
 RED='\033[0;31m'
@@ -38,18 +38,11 @@ check_dependencies() {
 
     if [ ! -f "$HAYROLL_PATH" ]; then
         log_error "Hayroll not found at: $HAYROLL_PATH"
-        echo "Set HAYROLL_PATH environment variable or install Hayroll at ~/Hayroll/hayroll"
+        echo "Set HAYROLL_PATH environment variable or run ./setup.bash to build Hayroll"
         exit 1
     fi
 
     log_success "All dependencies found"
-}
-
-# Download benchmarks if not already present
-download_benchmarks() {
-    log_section "Downloading benchmarks"
-    bash "$SCRIPT_DIR/fetch_benchmarks.bash"
-    log_success "Benchmarks are ready"
 }
 
 # ============================================================================
@@ -238,7 +231,6 @@ main() {
     echo ""
 
     check_dependencies
-    download_benchmarks
 
     # Run evaluation for each benchmark
     eval_crust
