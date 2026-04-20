@@ -48,12 +48,8 @@ check_dependencies() {
 # Download benchmarks if not already present
 download_benchmarks() {
     log_section "Downloading benchmarks"
-
-    if [ ! -d "$SCRIPT_DIR/CBench" ] && [ ! -f "$SCRIPT_DIR/CRUST_bench.zip" ]; then
-        bash "$SCRIPT_DIR/fetch_benchmarks.bash"
-    else
-        log_success "Benchmarks already present"
-    fi
+    bash "$SCRIPT_DIR/fetch_benchmarks.bash"
+    log_success "Benchmarks are ready"
 }
 
 # ============================================================================
@@ -102,7 +98,7 @@ eval_crust() {
 eval_libmcs() {
     log_section "libmcs Evaluation"
 
-    local LIBMCS_SRC="$SCRIPT_DIR/benchmarks/libmcs"
+    local LIBMCS_SRC="$SCRIPT_DIR/libmcs"
     cd "$LIBMCS_SRC"
 
     local log_file="libmcs_eval.log"
@@ -139,11 +135,11 @@ eval_libmcs() {
 
     # Step 5: Run tests
     log_section "Running libmcs tests"
-    LIBMCS_SRC="$LIBMCS_SRC" bash "$SCRIPT_DIR/libmcs/test_libmcs.bash" >> "$log_file" 2>&1 || log_error "libmcs tests failed (see $log_file)"
+    bash "$LIBMCS_SRC/test_libmcs.bash" >> "$log_file" 2>&1 || log_error "libmcs tests failed (see $log_file)"
 
     # Step 6: Aggregate results
     log_section "Aggregating libmcs results"
-    python3 "$SCRIPT_DIR/libmcs/aggregate_reports.py" --output "$SCRIPT_DIR/aggregated_statistics_libmcs.json" >> "$log_file" 2>&1
+    python3 "$SCRIPT_DIR/aggregate_reports_libmcs.py" --output "$SCRIPT_DIR/aggregated_statistics_libmcs.json" >> "$log_file" 2>&1
     cd "$SCRIPT_DIR"
     log_success "libmcs aggregation completed"
 }
@@ -155,7 +151,7 @@ eval_libmcs() {
 eval_zlib() {
     log_section "zlib Evaluation"
 
-    local ZLIB_SRC="$SCRIPT_DIR/benchmarks/zlib"
+    local ZLIB_SRC="$SCRIPT_DIR/zlib"
     cd "$ZLIB_SRC"
 
     local log_file="zlib_eval.log"
@@ -174,7 +170,7 @@ eval_zlib() {
     # Step 3: Run Hayroll transpilation
     log_section "Running Hayroll transpilation for zlib"
     rm -rf hayroll_out
-    "$HAYROLL_PATH" compile_commands.json -w "$SCRIPT_DIR/zlib/whitelist.json" hayroll_out >> "$log_file" 2>&1
+    "$HAYROLL_PATH" compile_commands.json -w "$ZLIB_SRC/whitelist.json" hayroll_out >> "$log_file" 2>&1
     log_success "Transpilation completed"
 
     # Step 4: Build Rust code
@@ -186,11 +182,11 @@ eval_zlib() {
 
     # Step 5: Run tests
     log_section "Running zlib tests"
-    ZLIB_SRC="$ZLIB_SRC" bash "$SCRIPT_DIR/zlib/test_zlib.bash" >> "$log_file" 2>&1 || log_error "zlib tests failed (see $log_file)"
+    bash "$ZLIB_SRC/test_zlib.bash" >> "$log_file" 2>&1 || log_error "zlib tests failed (see $log_file)"
 
     # Step 6: Aggregate results
     log_section "Aggregating zlib results"
-    python3 "$SCRIPT_DIR/zlib/aggregate_reports.py" --output "$SCRIPT_DIR/aggregated_statistics_zlib.json" >> "$log_file" 2>&1
+    python3 "$SCRIPT_DIR/aggregate_reports_zlib.py" --output "$SCRIPT_DIR/aggregated_statistics_zlib.json" >> "$log_file" 2>&1
     cd "$SCRIPT_DIR"
     log_success "zlib aggregation completed"
 }

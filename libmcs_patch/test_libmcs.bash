@@ -1,16 +1,11 @@
 #!/bin/bash
-# Test libmcs translated Rust code using the standard test suite
+# Test libmcs translated Rust code using the overlaid standard test suite.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# LIBMCS_SRC: path to fetched libmcs source tree (defaults to same dir for standalone use)
-LIBMCS_SRC="${LIBMCS_SRC:-$SCRIPT_DIR}"
-
-# Link our test suite into the source tree so Makefile relative paths (../libm/include,
-# ../hayroll_out) resolve correctly against the source tree root.
-ln -sfn "$SCRIPT_DIR/test" "$LIBMCS_SRC/test-hayroll-suite"
-cd "$LIBMCS_SRC/test-hayroll-suite"
+LIBMCS_SRC="$SCRIPT_DIR"
+cd "$LIBMCS_SRC/test"
 
 echo "Building and running libmcs tests..."
 

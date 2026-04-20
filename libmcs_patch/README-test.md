@@ -1,5 +1,7 @@
 # Test Instructions
 
+These instructions describe the contents of `libmcs_patch/`, which are copied into the fetched upstream `./libmcs` source tree by `fetch_benchmarks.bash`. After that overlay, the patched libmcs checkout is self-contained and the test runner lives at `./libmcs/test_libmcs.bash`.
+
 - Run `./configure`
 
 ```
@@ -25,9 +27,8 @@ cd ./hayroll_out
 cargo build
 ```
 
-- Run the tests. These tests were adapted from openlibm's test suite.
+- Run the tests. These tests were adapted from openlibm's test suite and are overlaid into the upstream repository as `./test/`.
 
 ```
-cd ./test
-./all.bash
+./test_libmcs.bash
 ```

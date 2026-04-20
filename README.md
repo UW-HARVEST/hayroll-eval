@@ -5,28 +5,26 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Files
 
 ### Main Scripts
-- **`run_evaluation.bash`** - Master orchestration script (runs everything)
-- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib) (This should have already been done)
+- **`run_evaluation.bash`**: Master orchestration script (runs everything)
+- **`fetch_benchmarks.bash`**: Downloads benchmark sources and overlays local patch files for libmcs/zlib
 
-### Benchmark-Specific Scripts
-- **`libmcs/test_libmcs.bash`** - Test runner for libmcs
-- **`zlib/test_zlib.bash`** - Test runner for zlib
+### Benchmark-Specific Patch Files
+- **`libmcs_patch/`**: libmcs tests adapted from OpenLibm and test harness
+- **`zlib_patch/`**: zlib test harness
 
-### Existing Evaluation Scripts
+### CRUST-specific scripts
+- **`benchmark_crust.py`**: CRUST full evaluation
+- **`generate_metadata_crust.py`**: Generates metadata for CRUST projects
+- **`filter_failing_metadata_crust.py`**: Filters out failed CRUST projects
+- **`analyze_crust.py`**: Analyzes CRUST pass rate
 
-#### CRUST-specific scripts
-- **`benchmark_crust.py`** - CRUST full evaluation (handles all 4 dimensions)
-- **`generate_metadata_crust.py`** - Generates metadata for CRUST projects
-- **`filter_failing_metadata_crust.py`** - Filters out failed CRUST projects
-- **`analyze_crust.py`** - Analyzes CRUST pass rate
-
-#### Aggregate scripts
-- **`aggregate_reports_crust.py`** - Aggregates CRUST statistics and performance data
-- **`libmcs/aggregate_reports.py`** - Aggregates libmcs statistics and performance data
-- **`zlib/aggregate_reports.py`** - Aggregates zlib statistics and performance data
-- **`generate_outcome_table.py`** - Generates translation outcome tables
-- **`generate_performance_table.py`** - Generates performance comparison table
-- **`generate_failing_table.py`** - Generates macro rejection reasons table
+### Aggregate scripts
+- **`aggregate_reports_crust.py`**: Aggregates CRUST statistics and performance data
+- **`aggregate_reports_libmcs.py`**: Aggregates libmcs statistics and performance data
+- **`aggregate_reports_zlib.py`**: Aggregates zlib statistics and performance data
+- **`generate_outcome_table.py`**: Generates translation outcome tables
+- **`generate_performance_table.py`**: Generates performance comparison table
+- **`generate_failing_table.py`**: Generates macro rejection reasons table
 
 ## Quick Start
 
@@ -36,11 +34,10 @@ This guide explains how to run the complete evaluation pipeline for all three be
 
 This will:
 1. Check all dependencies (bear, make, gcc, cargo, python3, Hayroll)
-2. Download benchmarks (if not already present)
-3. **CRUST-Bench**: transpile -> build -> test -> aggregate
-4. **libmcs**: configure -> compile -> transpile -> build -> test -> aggregate
-5. **zlib**: configure -> compile -> transpile -> build -> test -> aggregate
-6. Generate all LaTeX tables
+2. Download benchmarks into `./CBench`, `./libmcs`, and `./zlib`
+3. Overlay local patch files from `libmcs_patch/` and `zlib_patch/` onto the fetched git repositories
+4. Run all tests for CRUST-Bench, libmcs, and zlib
+5. Aggregate results and generate LaTeX tables
 
 It should take fewer than 25 minutes to run everything. Reference: Intel(R) Core(TM) i7-1370P CPU @ 1.90GHz × 14, 64GB RAM, on a poorly radiated machine.
 

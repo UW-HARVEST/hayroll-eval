@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
 
-# Benchmark download and setup script
-# Downloads multiple benchmarks and organizes them into separate directories
+# Benchmark download and setup script.
+# CRUST-Bench is unpacked under CBench/.
+# Git benchmarks are cloned into the repository root and then overlaid with
+# their benchmark-specific patch trees from *_patch/.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -23,6 +25,10 @@ parse_benchmark() {
 # Download and setup CRUST benchmark
 download_crust() {
     local url="$1"
+    if [ -d "$SCRIPT_DIR/CBench" ]; then
+        echo "CRUST already present at $SCRIPT_DIR/CBench, skipping"
+        return
+    fi
     # Delete existing zip file to avoid corruption from incomplete downloads
     rm -f CRUST_bench.zip
     echo "Fetching CRUST_bench.zip"
@@ -34,19 +40,34 @@ download_crust() {
     rm CRUST_bench.zip
 }
 
-# Download git repository at specific tag/branch into benchmarks/<name>
+# Overlay local benchmark patch files into the fetched source tree.
+apply_patch_tree() {
+    local name="$1"
+    local dest="$2"
+    local patch_dir="$SCRIPT_DIR/${name}_patch"
+
+    if [ ! -d "$patch_dir" ]; then
+        echo "No patch directory for $name at $patch_dir, skipping patch overlay"
+        return
+    fi
+
+    echo "Applying local patch overlay from $patch_dir to $dest"
+    cp -a "$patch_dir/." "$dest/"
+}
+
+# Download git repository at specific tag/branch into ./<name>
 download_git_bench() {
     local name="$1"
     local url="$2"
     local branch="$3"
-    local dest="$SCRIPT_DIR/benchmarks/$name"
-    if [ -d "$dest" ]; then
-        echo "$name already present at $dest, skipping"
-        return
+    local dest="$SCRIPT_DIR/$name"
+    if [ ! -d "$dest" ]; then
+        echo "Cloning $name from $url (ref: $branch)"
+        git clone -q -b "$branch" "$url" "$dest"
+    else
+        echo "$name already present at $dest, skipping clone"
     fi
-    mkdir -p "$SCRIPT_DIR/benchmarks"
-    echo "Cloning $name from $url (ref: $branch)"
-    git clone -q -b "$branch" "$url" "$dest"
+    apply_patch_tree "$name" "$dest"
 }
 
 # Main download logic
