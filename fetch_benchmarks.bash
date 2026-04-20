@@ -4,10 +4,12 @@ set -e
 # Benchmark download and setup script
 # Downloads multiple benchmarks and organizes them into separate directories
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 BENCHMARKS=(
     "crust|https://github.com/anirudhkhatry/CRUST-bench/raw/9d1aaeea1033814bbf4c1626cab198d1235f6f7f/datasets/CRUST_bench.zip|zip"
-    "libmcs|https://github.com/UW-HARVEST/LibmCS|git|hayroll-eval"
-    "zlib|https://github.com/UW-HARVEST/zlib|git|hayroll-eval"
+    "libmcs|https://gitlab.com/gtd-gmbh/libmcs|git|1.2.0"
+    "zlib|https://github.com/madler/zlib|git|v1.3.1"
 )
 
 # Parse benchmark specification
@@ -32,13 +34,19 @@ download_crust() {
     rm CRUST_bench.zip
 }
 
-# Download git repository at specific branch
+# Download git repository at specific tag/branch into benchmarks/<name>
 download_git_bench() {
     local name="$1"
     local url="$2"
     local branch="$3"
-    echo "Cloning $name from $url (branch: $branch)"
-    git clone -q -b "$branch" "$url" "$name"
+    local dest="$SCRIPT_DIR/benchmarks/$name"
+    if [ -d "$dest" ]; then
+        echo "$name already present at $dest, skipping"
+        return
+    fi
+    mkdir -p "$SCRIPT_DIR/benchmarks"
+    echo "Cloning $name from $url (ref: $branch)"
+    git clone -q -b "$branch" "$url" "$dest"
 }
 
 # Main download logic
