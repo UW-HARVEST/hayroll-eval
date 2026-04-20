@@ -6,7 +6,7 @@ This guide explains how to run the complete evaluation pipeline for all three be
 
 ### Main Scripts
 - **`run_evaluation.bash`** - Master orchestration script (runs everything)
-- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib) (This should have alredy been done)
+- **`fetch_benchmarks.bash`** - Downloads all benchmark sources (CRUST, libmcs, zlib) (This should have already been done)
 
 ### Benchmark-Specific Scripts
 - **`libmcs/test_libmcs.bash`** - Test runner for libmcs
