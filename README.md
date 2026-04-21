@@ -67,7 +67,7 @@ docker run --rm -it hayroll-eval ./run_evaluation.bash
 The artifact lives at `/opt/hayroll-eval` inside the container. To keep the generated `.json` / `.tex` files on the host, mount a results directory:
 
 ```bash
-docker run --rm -it -v "$PWD/results:/opt/hayroll-eval/results" hayroll-eval \
+docker run --rm -it -v "$PWD/hayroll-eval-results:/opt/hayroll-eval/hayroll-eval-results" hayroll-eval \
     bash -c './run_evaluation.bash && cp aggregated*.json benchmark_summary.json *.tex results/ && chmod -R a+rw results/'
 ```
 
