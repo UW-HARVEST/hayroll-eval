@@ -30,6 +30,12 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
 		default=DEFAULT_OUTPUT,
 		help=f"Output LaTeX path (default: {DEFAULT_OUTPUT}).",
 	)
+	parser.add_argument(
+		"--column-names",
+		nargs="+",
+		metavar="NAME",
+		help="Column header names in order (must match number of input files).",
+	)
 	return parser.parse_args(list(argv))
 
 
@@ -97,8 +103,11 @@ def extract_column(stats: Dict[str, object], order: List[str]) -> List[str]:
 	return column
 
 
-def render_table(order: List[str], columns: List[List[str]]) -> str:
-	headers = [f"\\textbf{{Placeholder {idx}}}" for idx in range(1, len(columns) + 1)]
+def render_table(order: List[str], columns: List[List[str]], column_names: List[str] | None = None) -> str:
+	if column_names and len(column_names) == len(columns):
+		headers = [f"\\textbf{{{name}}}" for name in column_names]
+	else:
+		headers = [f"\\textbf{{Placeholder {idx}}}" for idx in range(1, len(columns) + 1)]
 
 	lines: List[str] = [
 		"\\begin{table}[t]",
@@ -136,7 +145,7 @@ def main(argv: Iterable[str]) -> int:
 
 	columns = [extract_column(stats, reason_order) for stats in stats_list]
 
-	table_text = render_table(reason_order, columns)
+	table_text = render_table(reason_order, columns, args.column_names)
 	args.output.write_text(table_text, encoding="utf-8")
 	return 0
 

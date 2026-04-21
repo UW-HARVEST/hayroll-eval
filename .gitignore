@@ -1,6 +1,8 @@
+Hayroll/
 CBench
 CRUST_bench.zip
 .vscode/
+.codex
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
@@ -15,3 +17,12 @@ CRUST_bench.zip
 *.cb
 *.cb2
 .*.lb
+
+hayroll_out/
+/libmcs/
+/zlib/
+
+## Results
+/aggregated*.json
+/benchmark_summary.json
+/*.tex

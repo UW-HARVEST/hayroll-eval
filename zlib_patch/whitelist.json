@@ -1,0 +1,10 @@
+[
+    "ZLIB_CONST",
+    "Z_U8",
+    "Z_U4",
+    "NO_FSEEKO",
+    "NO_STRERROR",
+    "NO_vsnprintf",
+    "NO_snprintf",
+    "HAVE_HIDDEN"
+]

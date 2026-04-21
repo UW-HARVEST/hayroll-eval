@@ -1,10 +1,12 @@
+import argparse
 import json
+import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 
-def run(command, cwd=None, timeout=30):
+def run(command, cwd=None, timeout=120):
     try:
         result = subprocess.run(
             command,
@@ -22,13 +24,79 @@ def run(command, cwd=None, timeout=30):
         return False, "", str(e)
 
 
-results = {}
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run complete CRUST benchmark evaluation"
+    )
+    parser.add_argument(
+        "--hayroll",
+        type=str,
+        default=None,
+        help="Path to Hayroll executable (default: from HAYROLL_PATH env var or ./Hayroll/hayroll)",
+    )
+    parser.add_argument(
+        "--c2rust",
+        action="store_true",
+        help=(
+            "Run c2rust baseline instead of Hayroll (c2rust must be installed system-wide). "
+            "Uses metadata.json by default instead of metadata-filtered.json."
+        ),
+    )
+    parser.add_argument(
+        "--metadata",
+        type=str,
+        default=None,
+        help=(
+            "Metadata JSON file to read. "
+            "Defaults to metadata.json with --c2rust, metadata-filtered.json otherwise."
+        ),
+    )
+    return parser.parse_args()
 
+
+def get_hayroll_path(provided_path):
+    """Get Hayroll path from argument, environment, or default."""
+    if provided_path:
+        return provided_path
+
+    # Try environment variable
+    env_path = os.environ.get("HAYROLL_PATH")
+    if env_path:
+        return env_path
+
+    # Default to submodule build
+    return str(Path(__file__).parent / "Hayroll" / "hayroll")
+
+
+results = {}
 root_dir = Path.cwd()
 
-# with open("metadata.json") as file:
-with open("metadata-filtered.json") as file:
-# with open("metadata-1.json") as file:
+# Parse args first so we know which metadata file and tool to use
+args = parse_args()
+
+# Determine tool mode: c2rust baseline or Hayroll (default)
+if args.c2rust:
+    tool_path = "c2rust"
+    out_dir = "c2rust_out"
+    transpile_cmd = f"{tool_path} transpile --emit-build-files compile_commands.json -o {out_dir}"
+    default_metadata = "metadata.json"
+else:
+    tool_path = get_hayroll_path(args.hayroll)
+    out_dir = "hayroll_out"
+    transpile_cmd = f"{tool_path} transpile compile_commands.json -o {out_dir}"
+    default_metadata = "metadata-filtered.json"
+
+# Verify Hayroll executable exists (c2rust is a system command, no path check needed)
+if not args.c2rust and not Path(tool_path).exists():
+    print(f"Error: Hayroll not found at {tool_path}")
+    print("Set HAYROLL_PATH environment variable or use --hayroll argument")
+    exit(1)
+
+print(f"Using tool at: {tool_path}")
+
+# Load metadata
+metadata_file = args.metadata if args.metadata else default_metadata
+with open(metadata_file) as file:
     benchmark_metadata = json.load(file)
 
 
@@ -72,21 +140,28 @@ def process_program(program):
             print(f"Finished '{name}' with status: {program_result['status']}")
             return name, program_result
 
-    # run("rm -rf ./c2rust_out", cwd=program_dir)
-    run("rm -rf ./hayroll_out", cwd=program_dir)
+    run(f"rm -rf ./{out_dir}", cwd=program_dir)
     success, out, err = run(
-        # "c2rust transpile --emit-build-files compile_commands.json -o c2rust_out",
-        "~/Hayroll/hayroll transpile compile_commands.json -o hayroll_out",
+        transpile_cmd,
         cwd=program_dir,
-        timeout=300,
+        timeout=600,
     )
     if not success:
         fail("transpile", err)
         print(f"Finished '{name}' with status: {program_result['status']}")
         return name, program_result
 
-    # cargo_dir = program_dir / "c2rust_out"
-    cargo_dir = program_dir / "hayroll_out"
+    # Verify that Cargo.toml was actually generated
+    cargo_toml_path = program_dir / out_dir / "Cargo.toml"
+    if not cargo_toml_path.exists():
+        fail(
+            "transpile",
+            "Cargo.toml not generated - transpile may have failed silently or project structure unclear",
+        )
+        print(f"Finished '{name}' with status: {program_result['status']}")
+        return name, program_result
+
+    cargo_dir = program_dir / out_dir
     success, out, err = run("cargo build", cwd=cargo_dir)
     if not success:
         fail("rust_build", err)
@@ -97,8 +172,7 @@ def process_program(program):
         exe_name = Path(test_file).stem + "_exe"
         sources = " ".join([test_file] + sub_tests)
         compile_cmd = (
-            # f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -Lc2rust_out/target/debug -lc2rust_out -ldl -lpthread -lm"
-            f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -Lhayroll_out/target/debug -lhayroll_out -ldl -lpthread -lm"
+            f"gcc -o {exe_name} {sources} -I. -Isrc -Iinclude -L{out_dir}/target/debug -l{out_dir} -ldl -lpthread -lm"
         )
         success, out, err = run(compile_cmd, cwd=program_dir)
         if not success:
@@ -127,7 +201,7 @@ def process_program(program):
     return name, program_result
 
 
-with ThreadPoolExecutor(max_workers=16) as executor:
+with ThreadPoolExecutor(max_workers=8) as executor:
     futures = [
         executor.submit(process_program, program)
         for program in benchmark_metadata["programs"]
