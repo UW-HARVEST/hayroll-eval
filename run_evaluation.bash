@@ -132,7 +132,7 @@ eval_libmcs() {
 
     # Step 6: Aggregate results
     log_section "Aggregating libmcs results"
-    python3 "$SCRIPT_DIR/aggregate_reports_libmcs.py" --output "$SCRIPT_DIR/aggregated_statistics_libmcs.json" >> "$log_file" 2>&1
+    python3 "$SCRIPT_DIR/aggregate_reports_libmcs.py" --search-root "$LIBMCS_SRC" --output "$SCRIPT_DIR/aggregated_statistics_libmcs.json" >> "$log_file" 2>&1
     cd "$SCRIPT_DIR"
     log_success "libmcs aggregation completed"
 }
@@ -179,7 +179,7 @@ eval_zlib() {
 
     # Step 6: Aggregate results
     log_section "Aggregating zlib results"
-    python3 "$SCRIPT_DIR/aggregate_reports_zlib.py" --output "$SCRIPT_DIR/aggregated_statistics_zlib.json" >> "$log_file" 2>&1
+    python3 "$SCRIPT_DIR/aggregate_reports_zlib.py" --search-root "$ZLIB_SRC" --output "$SCRIPT_DIR/aggregated_statistics_zlib.json" >> "$log_file" 2>&1
     cd "$SCRIPT_DIR"
     log_success "zlib aggregation completed"
 }
