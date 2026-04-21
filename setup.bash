@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HAYROLL_DIR="$SCRIPT_DIR/Hayroll"
 
 HAYROLL_GIT="https://github.com/UW-HARVEST/Hayroll.git"
-HAYROLL_TAG="0.1.6"
+HAYROLL_TAG="0.1.7"
 
 USE_LATEST=false
 for arg in "$@"; do
