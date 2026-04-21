@@ -68,7 +68,7 @@ The artifact lives at `/opt/hayroll-eval` inside the container. To keep the gene
 
 ```bash
 docker run --rm -it -v "$PWD/hayroll-eval-results:/opt/hayroll-eval/hayroll-eval-results" hayroll-eval \
-    bash -c './run_evaluation.bash && cp aggregated*.json benchmark_summary.json *.tex results/ && chmod -R a+rw results/'
+    bash -c './run_evaluation.bash && cp aggregated*.json benchmark_summary.json *.tex hayroll-eval-results/ && chmod -R a+rw hayroll-eval-results/'
 ```
 
 ## Output Files
