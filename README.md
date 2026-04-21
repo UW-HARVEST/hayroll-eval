@@ -5,7 +5,7 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Files
 
 ### Main Scripts
-- **`setup.bash`**: One-stop setup: builds Hayroll from the submodule and downloads all benchmarks
+- **`setup.bash`**: One-stop setup: clones and builds Hayroll, then downloads all benchmarks
 - **`run_evaluation.bash`**: Master orchestration script (runs everything)
 - **`build-docker.bash`**: Builds the Docker evaluation image
 - **`Dockerfile`**: Container image definition
@@ -31,13 +31,13 @@ This guide explains how to run the complete evaluation pipeline for all three be
 ## Quick Start
 
 ```bash
-./setup.bash                               # fetch, build Hayroll and download benchmarks
-./run_evaluation.bash                      # run full evaluation
+./setup.bash          # fetch, build Hayroll and download benchmarks, NOT NEEDED FOR PRE-BUILT DOCKER IMAGE
+./run_evaluation.bash # run full evaluation
 ```
 
 `setup.bash` will:
-1. Update git submodules (fetches Hayroll code into `Hayroll/`)
-2. Build Hayroll from the `Hayroll/` submodule
+1. Clone Hayroll at the pinned version into `Hayroll/` (pass `--latest` to track `main` instead)
+2. Build Hayroll (runs its own `prerequisites.bash` and `build.bash`)
 3. Download benchmarks into `./CBench`, `./libmcs`, and `./zlib`
 4. Overlay local patch files from `libmcs_patch/` and `zlib_patch/` onto the fetched git repositories
 
@@ -50,10 +50,25 @@ It should take fewer than 25 minutes to run everything. Reference: Intel(R) Core
 
 ## Docker
 
-The image is self-contained. You only need to run:
+A self-contained image is provided so the pipeline can be reproduced without installing anything on the host (benchmarks and Hayroll are baked in at build time, so the container also runs offline).
+
+Build the image:
 
 ```bash
-./run_evaluation.bash
+./build-docker.bash                 # tags as hayroll-eval:latest
+```
+
+Run the evaluation inside the container:
+
+```bash
+docker run --rm -it hayroll-eval ./run_evaluation.bash
+```
+
+The artifact lives at `/opt/hayroll-eval` inside the container. To keep the generated `.json` / `.tex` files on the host, mount a results directory:
+
+```bash
+docker run --rm -it -v "$PWD/results:/opt/hayroll-eval/results" hayroll-eval \
+    bash -c './run_evaluation.bash && cp aggregated*.json *.tex results/'
 ```
 
 ## Output Files
@@ -70,23 +85,38 @@ aggregated_performance_zlib.json        # zlib pipeline performance
 ```
 
 ### Generated LaTeX Tables
-```
-outcome_table_crust.tex                 # CRUST translation outcomes
-outcome_table_libmcs.tex                # libmcs translation outcomes
-outcome_table_zlib.tex                  # zlib translation outcomes
 
-performance_table.tex                   # Combined performance comparison
-failing_table.tex                       # Combined macro rejection reasons
-```
+Each `.tex` file corresponds to a table in the paper:
 
-## Additional Notes
+| File | Paper Table |
+| --- | --- |
+| `outcome_table_crust.tex`  | Table 4: CRUST-Bench translation outcomes |
+| `outcome_table_libmcs.tex` | Table 5: LibmCS translation outcomes |
+| `outcome_table_zlib.tex`   | Table 6: zlib translation outcomes |
+| `failing_table.tex`        | Table 7: macro rejection reasons (all benchmarks) |
+| `performance_table.tex`    | Table 8: end-to-end performance comparison (all benchmarks) |
 
-Some test programs from CRUST-Bench may occasionally fail due to non-deterministic factors.
+All tables are generated automatically, including `failing_table.tex` (Table 7). No manual editing is involved.
 
-`libpsbt`: May report "misaligned pointer dereference". `tx.c` uses the `__FILE__` macro to generate C-strings and manipulates those with raw pointers. According to which temporary folders that Hayroll uses during transpilation, it may or may not trigger this issue.
+## Verifying Correctness
 
-`clog`: It includes a performance test which may fail on less powerful machines.
+The claim under evaluation is that Hayroll produces a Rust translation whose test suite passes on each benchmark. Check the console output at the end of `run_evaluation.bash`:
 
-`fs_c`: It verifies that opening `/root/foo` for writing fails (i.e. the process lacks permission). When running as root (e.g. inside a Docker container), this write succeeds and the assertion fires. This is a pre-existing issue in the upstream test, not a Hayroll bug.
+- **CRUST-Bench**: the analyzer prints `Tests Passed: 33/33`. A few programs have flaky tests. See *Expected Discrepancies* below.
+- **libmcs** and **zlib**: the aggregated log should finish without an error-terminate.
 
-Some other test programs may fail due to transpilation or cargo build timeout. This also happens more often on less powerful machines. You can adjust `max_workers` in the `benchmark_crust.py` script to reduce the number of parallel processes and mitigate this issue.
+## Expected Discrepancies from the Paper
+
+Exact numbers may differ from the paper, but the high-level conclusions should hold. The usual sources of drift:
+
+- **Tables 4–6 (outcomes)**: Counts depend on which system headers and macro definitions the host's C toolchain exposes, so per-category totals can shift slightly between machines and distros.
+- **Table 7 (rejection reasons)**: Generated from the same underlying data as Tables 4–6, so it varies with them.
+- **Table 8 (performance)**: Wall-clock numbers depend on CPU, memory pressure, and concurrency. Relative ordering and order-of-magnitude ratios are the stable signal, not the absolute seconds.
+
+Individual CRUST-Bench programs that may occasionally fail for reasons unrelated to translation correctness:
+
+- `libpsbt`: May report `misaligned pointer dereference`. `tx.c` uses the `__FILE__` macro to generate C-strings and manipulates those with raw pointers. Depending on which temporary folders Hayroll uses during transpilation, it may or may not trigger this issue.
+- `clog`: Includes a performance test which may fail on less powerful machines.
+- `fs_c`: Verifies that opening `/root/foo` for writing fails (i.e. the process lacks permission). When running as root (e.g. inside a Docker container), this write succeeds and the assertion fires. This is a pre-existing issue in the upstream test, not a Hayroll bug.
+
+Some other test programs may fail due to transpilation or cargo build timeout, more often on less powerful machines. You can adjust `max_workers` in `benchmark_crust.py` to reduce the number of parallel processes and mitigate this.
